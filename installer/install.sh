@@ -8,7 +8,7 @@ echo "=========================================="
 
 echo
 echo "[1/7] Updating packages..."
-apt update
+apt update -y
 
 echo
 echo "[2/7] Installing required packages..."
@@ -33,15 +33,19 @@ echo
 echo "[3/7] Creating directories..."
 
 mkdir -p /etc/beeplusv2ray
-mkdir -p /var/log/beeplus
 mkdir -p /usr/local/beeplus
+mkdir -p /var/log/beeplus
 
 echo
 echo "[4/7] Copying project files..."
 
+cp -r menu /usr/local/beeplus/
 cp -r modules /usr/local/beeplus/
-cp -r websocket /usr/local/beeplus/
-cp -r config /etc/beeplusv2ray/
+
+[ -d websocket ] && cp -r websocket /usr/local/beeplus/
+[ -d protocols ] && cp -r protocols /usr/local/beeplus/
+[ -d installer ] && cp -r installer /usr/local/beeplus/
+[ -d config ] && cp -r config /etc/beeplusv2ray/
 
 echo
 echo "[5/7] Setting permissions..."
@@ -51,10 +55,10 @@ chmod -R +x /usr/local/beeplus
 echo
 echo "[6/7] Creating shortcut..."
 
-cat >/usr/local/bin/bpm <<'EOF'
+cat >/usr/local/bin/bpm << 'EOF'
 #!/bin/bash
 cd /usr/local/beeplus
-bash menu.sh
+bash menu/main.sh
 EOF
 
 chmod +x /usr/local/bin/bpm
@@ -71,3 +75,9 @@ echo
 echo "bpm"
 echo
 echo "=========================================="
+
+# تشغيل إعداد الخدمات إذا كان موجوداً
+if [ -f /usr/local/beeplus/installer/services.sh ]; then
+    source /usr/local/beeplus/installer/services.sh
+    install_services
+fi
