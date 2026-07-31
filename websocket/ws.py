@@ -3,11 +3,17 @@
 import socket
 import threading
 import select
+import json
+import os
 
-CONFIG_FILE = "/etc/beeplusv2ray/websocket.conf"
 
-LISTENING_ADDR = "0.0.0.0"
-DEFAULT_HOST = ("127.0.0.1", 22)
+CONFIG_FILE = "/usr/local/beeplus/config/websocket.json"
+
+LISTEN_ADDR = "0.0.0.0"
+
+BUFFER = 16384
+
+TARGET = ("127.0.0.1", 22)
 
 RESPONSE = (
     "HTTP/1.1 101 Switching Protocols\r\n"
@@ -15,27 +21,23 @@ RESPONSE = (
     "Upgrade: websocket\r\n\r\n"
 )
 
-BUFFER = 16384
+
+def load_config():
+
+    if not os.path.exists(CONFIG_FILE):
+        return {
+            "enabled": True,
+            "target_host": "127.0.0.1",
+            "target_port": 22,
+            "ports": [80]
+        }
+
+    with open(CONFIG_FILE) as f:
+        return json.load(f)
 
 
-def load_ports():
-    ports = []
 
-    try:
-        with open(CONFIG_FILE, "r") as f:
-            for line in f:
-                line = line.strip()
-
-                if line.isdigit():
-                    ports.append(int(line))
-
-    except FileNotFoundError:
-        ports = [80, 8080, 8880]
-
-    return sorted(set(ports))
-
-
-def handle(client):
+def proxy(client):
 
     target = None
 
@@ -45,16 +47,22 @@ def handle(client):
 
         client.sendall(RESPONSE.encode())
 
-        target = socket.create_connection(DEFAULT_HOST)
+        target = socket.create_connection(TARGET)
 
         client.setblocking(False)
         target.setblocking(False)
 
+
         while True:
 
-            r, _, _ = select.select([client, target], [], [])
+            r, _, _ = select.select(
+                [client, target],
+                [],
+                []
+            )
 
             if client in r:
+
                 data = client.recv(BUFFER)
 
                 if not data:
@@ -62,7 +70,9 @@ def handle(client):
 
                 target.sendall(data)
 
+
             if target in r:
+
                 data = target.recv(BUFFER)
 
                 if not data:
@@ -70,8 +80,10 @@ def handle(client):
 
                 client.sendall(data)
 
+
     except Exception:
         pass
+
 
     finally:
 
@@ -81,41 +93,82 @@ def handle(client):
             target.close()
 
 
-def start_server(port):
 
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+def start(port):
 
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server = socket.socket(
+        socket.AF_INET,
+        socket.SOCK_STREAM
+    )
 
-    server.bind((LISTENING_ADDR, port))
+    server.setsockopt(
+        socket.SOL_SOCKET,
+        socket.SO_REUSEADDR,
+        1
+    )
 
-    server.listen(100)
+    try:
 
-    print(f"[+] WebSocket listening on {port}")
+        server.bind(
+            (LISTEN_ADDR, port)
+        )
+
+        server.listen(100)
+
+        print(
+            f"WebSocket running on {port}"
+        )
+
+
+    except OSError as e:
+
+        print(
+            f"Port {port} unavailable: {e}"
+        )
+
+        return
+
 
     while True:
 
         client, _ = server.accept()
 
         threading.Thread(
-            target=handle,
+            target=proxy,
             args=(client,),
             daemon=True
         ).start()
 
 
-if __name__ == "__main__":
 
-    ports = load_ports()
+def main():
 
-    print("Ports:", ports)
+    config = load_config()
+
+    ports = config.get(
+        "ports",
+        [80]
+    )
+
+
+    print(
+        "Active ports:",
+        ports
+    )
+
 
     for port in ports:
 
         threading.Thread(
-            target=start_server,
+            target=start,
             args=(port,),
             daemon=True
         ).start()
 
+
     threading.Event().wait()
+
+
+
+if __name__ == "__main__":
+    main()
