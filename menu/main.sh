@@ -1,38 +1,48 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-DIR="$(cd "$(dirname "$0")" && pwd)"
-
-source "$DIR/modules/colors.sh"
-source "$DIR/modules/utils.sh"
-source "$DIR/modules/banner.sh"
+source /usr/local/beeplus/modules/colors.sh
+source /usr/local/beeplus/modules/banner.sh
 
 while true; do
-    banner
 
-    echo -e "${GREEN}[1]${RESET} Add / Remove User"
-    echo -e "${GREEN}[2]${RESET} Protocols"
-    echo -e "${GREEN}[3]${RESET} BadVPN"
-    echo -e "${RED}[0]${RESET} Exit"
+clear
+
+banner
+
+echo
+echo " [1] BADVPN"
+echo " [2] ADD / REMOVE USER"
+echo " [3] PROTOCOLS"
+echo
+echo " [0] EXIT"
+echo
+
+read -p "Select Option : " option
+
+case $option in
+
+1)
+    bash /usr/local/beeplus/modules/badvpn.sh
+    ;;
+
+2)
+    bash /usr/local/beeplus/modules/users.sh
+    ;;
+
+3)
+    bash /usr/local/beeplus/protocols/main.sh
+    ;;
+
+0)
+    exit
+    ;;
+
+*)
     echo
-    read -rp "Select: " opt
+    echo "Invalid Option"
+    sleep 1
+    ;;
 
-    case "$opt" in
-        1)
-            bash "$DIR/modules/users.sh"
-            ;;
-        2)
-            bash "$DIR/modules/protocols.sh"
-            ;;
-        3)
-            bash "$DIR/modules/badvpn.sh"
-            ;;
-        0)
-            clear
-            exit
-            ;;
-        *)
-            echo "Invalid option"
-            sleep 1
-            ;;
-    esac
+esac
+
 done
