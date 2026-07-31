@@ -1,83 +1,157 @@
 #!/bin/bash
 
+set -e
+
 clear
 
 echo "=========================================="
-echo "      BeePlusV2ray Manager"
+echo "       BeePlusV2ray Manager Installer"
 echo "=========================================="
 
-echo
-echo "[1/7] Updating packages..."
-apt update -y
+REPO="abdoel103/BeePlusV2ray-Manager"
+BRANCH="devlop"
+
+INSTALL_DIR="/usr/local/beeplus"
+
+
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run as root"
+    exit 1
+fi
+
 
 echo
-echo "[2/7] Installing required packages..."
+echo "[1/8] Updating packages..."
+
+apt update
+
+
+echo
+echo "[2/8] Installing requirements..."
 
 apt install -y \
 python3 \
 python3-pip \
+git \
 curl \
 wget \
-git \
-net-tools \
-lsof \
-unzip \
-zip \
-screen \
-cron \
+openssh-server \
 dropbear \
-stunnel4 \
-openssh-server
+stunnel4
+
 
 echo
-echo "[3/7] Creating directories..."
+echo "[3/8] Preparing directories..."
 
-mkdir -p /etc/beeplusv2ray
-mkdir -p /usr/local/beeplus
-mkdir -p /var/log/beeplus
+mkdir -p "$INSTALL_DIR"
 
-echo
-echo "[4/7] Copying project files..."
+mkdir -p "$INSTALL_DIR/config"
 
-cp -r menu /usr/local/beeplus/
-cp -r modules /usr/local/beeplus/
+mkdir -p "$INSTALL_DIR/websocket"
 
-[ -d websocket ] && cp -r websocket /usr/local/beeplus/
-[ -d protocols ] && cp -r protocols /usr/local/beeplus/
-[ -d installer ] && cp -r installer /usr/local/beeplus/
-[ -d config ] && cp -r config /etc/beeplusv2ray/
+mkdir -p "$INSTALL_DIR/tools"
+
 
 echo
-echo "[5/7] Setting permissions..."
+echo "[4/8] Downloading BeePlusV2ray Manager..."
 
-chmod -R +x /usr/local/beeplus
+TMP_DIR="/tmp/BeePlusV2ray-Manager"
+
+rm -rf "$TMP_DIR"
+
+
+git clone \
+-b "$BRANCH" \
+"https://github.com/$REPO.git" \
+"$TMP_DIR"
+
+
 
 echo
-echo "[6/7] Creating shortcut..."
+echo "[5/8] Installing files..."
 
-cat >/usr/local/bin/bpm << 'EOF'
+
+cp -r "$TMP_DIR/websocket" \
+"$INSTALL_DIR/"
+
+
+cp -r "$TMP_DIR/config" \
+"$INSTALL_DIR/"
+
+
+cp -r "$TMP_DIR/tools" \
+"$INSTALL_DIR/"
+
+
+cp -r "$TMP_DIR/protocols" \
+"$INSTALL_DIR/"
+
+
+cp "$TMP_DIR/services/beeplus-websocket.service" \
+/etc/systemd/system/
+
+
+
+echo
+echo "[6/8] Creating default config..."
+
+
+if [ ! -f "$INSTALL_DIR/config/websocket.json" ]; then
+
+cat > "$INSTALL_DIR/config/websocket.json" <<EOF
+{
+    "enabled": true,
+    "target_host": "127.0.0.1",
+    "target_port": 22,
+    "ports": [
+        80
+    ]
+}
+EOF
+
+fi
+
+
+
+echo
+echo "[7/8] Starting services..."
+
+
+chmod +x "$INSTALL_DIR/websocket/ws.py"
+
+chmod +x "$INSTALL_DIR/tools/config.py"
+
+
+systemctl daemon-reload
+
+systemctl enable beeplus-websocket
+
+systemctl restart beeplus-websocket
+
+
+
+echo
+echo "[8/8] Creating command..."
+
+
+cat > /usr/local/bin/bpm <<EOF
 #!/bin/bash
-cd /usr/local/beeplus
+cd $INSTALL_DIR
 bash menu/main.sh
 EOF
 
+
 chmod +x /usr/local/bin/bpm
 
-echo
-echo "[7/7] Installation completed."
+
 
 echo
 echo "=========================================="
-echo "Installation Successful!"
+echo " Installation Completed Successfully "
+echo "=========================================="
+
 echo
 echo "Run:"
 echo
-echo "bpm"
+echo "menu"
 echo
-echo "=========================================="
-
-# تشغيل إعداد الخدمات إذا كان موجوداً
-if [ -f /usr/local/beeplus/installer/services.sh ]; then
-    source /usr/local/beeplus/installer/services.sh
-    install_services
-fi
