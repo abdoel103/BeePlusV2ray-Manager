@@ -44,12 +44,10 @@ echo
 echo "[3/8] Preparing directories..."
 
 mkdir -p "$INSTALL_DIR"
-
 mkdir -p "$INSTALL_DIR/config"
-
 mkdir -p "$INSTALL_DIR/websocket"
-
 mkdir -p "$INSTALL_DIR/tools"
+
 
 
 echo
@@ -74,17 +72,21 @@ echo "[5/8] Installing files..."
 cp -r "$TMP_DIR/websocket" \
 "$INSTALL_DIR/"
 
-
 cp -r "$TMP_DIR/config" \
 "$INSTALL_DIR/"
-
 
 cp -r "$TMP_DIR/tools" \
 "$INSTALL_DIR/"
 
-
 cp -r "$TMP_DIR/protocols" \
 "$INSTALL_DIR/"
+
+cp -r "$TMP_DIR/menu" \
+"$INSTALL_DIR/"
+
+cp -r "$TMP_DIR/modules" \
+"$INSTALL_DIR/"
+
 
 
 cp "$TMP_DIR/services/beeplus-websocket.service" \
@@ -114,12 +116,19 @@ fi
 
 
 echo
-echo "[7/8] Starting services..."
+echo "[7/8] Setting permissions and starting services..."
 
 
 chmod +x "$INSTALL_DIR/websocket/ws.py"
 
 chmod +x "$INSTALL_DIR/tools/config.py"
+
+chmod +x "$INSTALL_DIR"/protocols/*.sh
+
+chmod +x "$INSTALL_DIR"/menu/*.sh
+
+chmod +x "$INSTALL_DIR"/modules/*.sh
+
 
 
 systemctl daemon-reload
@@ -153,5 +162,5 @@ echo "=========================================="
 echo
 echo "Run:"
 echo
-echo "menu"
+echo "bpm"
 echo
