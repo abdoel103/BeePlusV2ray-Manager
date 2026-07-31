@@ -1,74 +1,61 @@
 #!/bin/bash
 
-DIR="$(cd "$(dirname "$0")/.." && pwd)"
+BASE="/usr/local/beeplus"
 
-source "$DIR/modules/colors.sh"
-source "$DIR/modules/banner.sh"
+CONFIG="$BASE/config/websocket.json"
+TOOL="$BASE/tools/config.py"
 
-CONFIG="/etc/beeplusv2ray/websocket.conf"
-
-mkdir -p /etc/beeplusv2ray
-
-# default port
-if [ ! -s "$CONFIG" ]; then
-    echo "80" > "$CONFIG"
-fi
-
-
-while true; do
+while true
+do
 
 clear
-banner
+
+echo "================================="
+echo "       WEBSOCKET MANAGER"
+echo "================================="
 
 echo
-echo -e "${GREEN}WEBSOCKET PORTS${RESET}"
+echo "Active Ports:"
 echo
 
-nl -s " - " "$CONFIG"
+python3 "$TOOL" websocket list
 
 echo
-echo "=========================="
+echo "-----------------------------"
 echo "[1] Add Port"
 echo "[2] Remove Port"
-echo "[3] Restart WebSocket"
-echo "[4] Enable Service"
-echo "[5] Disable Service"
+echo "[3] Restart Service"
 echo "[0] Back"
 echo
 
-read -p "Select: " opt
+read -p "Select: " option
 
 
-case $opt in
-
+case $option in
 
 1)
 
-read -p "New Port: " PORT
+read -p "Enter new port: " PORT
 
-if grep -qx "$PORT" "$CONFIG"; then
-    echo "Port already exists."
-else
-    echo "$PORT" >> "$CONFIG"
-    echo "Port added."
-fi
+python3 "$TOOL" websocket add-port "$PORT"
 
-systemctl restart beeplus-websocket 2>/dev/null
+systemctl restart beeplus-websocket
+
+echo "Port added."
+sleep 2
 
 ;;
 
+
 2)
 
-read -p "Port to remove: " PORT
+read -p "Enter port to remove: " PORT
 
-if [ "$PORT" = "80" ]; then
-    echo "Default port 80 cannot be removed."
-else
-    sed -i "/^$PORT$/d" "$CONFIG"
-    echo "Port removed."
-fi
+python3 "$TOOL" websocket remove-port "$PORT"
 
-systemctl restart beeplus-websocket 2>/dev/null
+systemctl restart beeplus-websocket
+
+sleep 2
 
 ;;
 
@@ -78,20 +65,7 @@ systemctl restart beeplus-websocket 2>/dev/null
 systemctl restart beeplus-websocket
 
 echo "Restarted."
-
-;;
-
-
-4)
-
-systemctl enable --now beeplus-websocket
-
-;;
-
-
-5)
-
-systemctl disable --now beeplus-websocket
+sleep 2
 
 ;;
 
@@ -102,6 +76,12 @@ exit
 
 ;;
 
+*)
+
+echo "Invalid option"
+sleep 2
+
+;;
 
 esac
 
