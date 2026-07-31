@@ -5,6 +5,7 @@ After=network.target
 [Service]
 Type=simple
 ExecStart=/usr/bin/python3 /usr/local/beeplus/websocket/ws.py
+WorkingDirectory=/usr/local/beeplus
 Restart=always
 RestartSec=3
 User=root
