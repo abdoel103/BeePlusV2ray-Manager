@@ -1,53 +1,69 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-source /usr/local/beeplus/modules/colors.sh
-source /usr/local/beeplus/modules/banner.sh
+DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
+source "$DIR/modules/colors.sh"
+source "$DIR/modules/banner.sh"
 
 while true; do
 
-clear
+    clear
+    banner
 
-banner
+    WS_PORTS=$(python3 "$DIR/tools/config.py" websocket list | paste -sd "," -)
+    [ -z "$WS_PORTS" ] && WS_PORTS="80"
 
-echo
-echo " [1] BADVPN"
-echo " [2] ADD / REMOVE USER"
-echo " [3] PROTOCOLS"
-echo " [4] WEBSOCKET MANAGER"
-echo
-echo " [0] EXIT"
-echo
+    echo -e "${GREEN}SERVICE:${RESET} OPENSSH        ${YELLOW}PORT:${RESET} 22"
+    echo -e "${GREEN}SERVICE:${RESET} WEBSOCKET      ${YELLOW}PORTS:${RESET} ${WS_PORTS}"
+    echo -e "${GREEN}SERVICE:${RESET} SSL TUNNEL     ${YELLOW}PORT:${RESET} 443"
+    echo -e "${GREEN}SERVICE:${RESET} DROPBEAR       ${YELLOW}PORT:${RESET} 110"
 
-read -rp "Select Option : " option
-
-case "$option" in
-
-01|1)
-    bash /usr/local/beeplus/modules/badvpn.sh
-    ;;
-
-02|2)
-    bash /usr/local/beeplus/modules/users.sh
-    ;;
-
-03|3)
-    bash /usr/local/beeplus/protocols/main.sh
-    ;;
-
-04|4)
-    bash /usr/local/beeplus/protocols/websocket.sh
-    ;;
-
-00|0)
-    exit
-    ;;
-
-*)
     echo
-    echo "Invalid Option"
-    sleep 1
-    ;;
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo
+    echo "[01] • OPENSSH      ◉"
+    echo "[02] • SQUID PROXY  ○"
+    echo "[03] • DROPBEAR     ◉"
+    echo "[04] • WEBSOCKET    ◉"
+    echo "[05] • SSL TUNNEL   ◉"
+    echo "[06] • SLOWDNS      ○"
+    echo
+    echo "[07] • BACK"
+    echo "[00] • EXIT"
+    echo
 
-esac
+    read -rp "Select: " option
+
+    case "$option" in
+        01|1)
+            bash "$DIR/protocols/openssh.sh"
+            ;;
+        02|2)
+            bash "$DIR/protocols/squid.sh"
+            ;;
+        03|3)
+            bash "$DIR/protocols/dropbear.sh"
+            ;;
+        04|4)
+            bash "$DIR/protocols/websocket.sh"
+            ;;
+        05|5)
+            bash "$DIR/protocols/ssl.sh"
+            ;;
+        06|6)
+            bash "$DIR/protocols/slowdns.sh"
+            ;;
+        07|7)
+            exit 0
+            ;;
+        00|0)
+            exit 0
+            ;;
+        *)
+            echo
+            echo "Invalid Option"
+            sleep 1
+            ;;
+    esac
 
 done
