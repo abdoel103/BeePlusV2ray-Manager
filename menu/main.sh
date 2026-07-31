@@ -18,27 +18,27 @@ echo
 echo " [0] EXIT"
 echo
 
-read -p "Select Option : " option
+read -rp "Select Option : " option
 
-case $option in
+case "$option" in
 
-1)
+01|1)
     bash /usr/local/beeplus/modules/badvpn.sh
     ;;
 
-2)
+02|2)
     bash /usr/local/beeplus/modules/users.sh
     ;;
 
-3)
+03|3)
     bash /usr/local/beeplus/protocols/main.sh
     ;;
 
-4)
+04|4)
     bash /usr/local/beeplus/protocols/websocket.sh
     ;;
 
-0)
+00|0)
     exit
     ;;
 
