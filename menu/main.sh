@@ -13,6 +13,7 @@ echo
 echo " [1] BADVPN"
 echo " [2] ADD / REMOVE USER"
 echo " [3] PROTOCOLS"
+echo " [4] WEBSOCKET MANAGER"
 echo
 echo " [0] EXIT"
 echo
@@ -31,6 +32,10 @@ case $option in
 
 3)
     bash /usr/local/beeplus/protocols/main.sh
+    ;;
+
+4)
+    bash /usr/local/beeplus/protocols/websocket.sh
     ;;
 
 0)
