@@ -6,11 +6,15 @@ source "$DIR/modules/colors.sh"
 source "$DIR/modules/banner.sh"
 
 while true; do
+
     clear
     banner
 
+    WS_PORTS=$(python3 "$DIR/tools/config.py" websocket list | paste -sd "," -)
+    [ -z "$WS_PORTS" ] && WS_PORTS="80"
+
     echo -e "${GREEN}SERVICE:${RESET} OPENSSH        ${YELLOW}PORT:${RESET} 22"
-    echo -e "${GREEN}SERVICE:${RESET} WEBSOCKET      ${YELLOW}PORTS:${RESET} JSON CONFIG"
+    echo -e "${GREEN}SERVICE:${RESET} WEBSOCKET      ${YELLOW}PORTS:${RESET} ${WS_PORTS}"
     echo -e "${GREEN}SERVICE:${RESET} SSL TUNNEL     ${YELLOW}PORT:${RESET} 443"
     echo -e "${GREEN}SERVICE:${RESET} DROPBEAR       ${YELLOW}PORT:${RESET} 110"
 
@@ -28,9 +32,9 @@ while true; do
     echo "[00] • EXIT"
     echo
 
-    read -rp "Select: " opt
+    read -rp "Select: " option
 
-    case "$opt" in
+    case "$option" in
         01|1)
             bash "$DIR/protocols/openssh.sh"
             ;;
@@ -50,11 +54,10 @@ while true; do
             bash "$DIR/protocols/slowdns.sh"
             ;;
         07|7)
-            bash "$DIR/menu/main.sh"
-            exit
+            exit 0
             ;;
         00|0)
-            exit
+            exit 0
             ;;
         *)
             echo
@@ -62,4 +65,5 @@ while true; do
             sleep 1
             ;;
     esac
+
 done
