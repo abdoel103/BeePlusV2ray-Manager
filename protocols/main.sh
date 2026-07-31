@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -7,10 +6,11 @@ source "$DIR/modules/colors.sh"
 source "$DIR/modules/banner.sh"
 
 while true; do
+    clear
     banner
 
     echo -e "${GREEN}SERVICE:${RESET} OPENSSH        ${YELLOW}PORT:${RESET} 22"
-    echo -e "${GREEN}SERVICE:${RESET} PROXY SOCKS    ${YELLOW}PORT:${RESET} 8880"
+    echo -e "${GREEN}SERVICE:${RESET} WEBSOCKET      ${YELLOW}PORTS:${RESET} JSON CONFIG"
     echo -e "${GREEN}SERVICE:${RESET} SSL TUNNEL     ${YELLOW}PORT:${RESET} 443"
     echo -e "${GREEN}SERVICE:${RESET} DROPBEAR       ${YELLOW}PORT:${RESET} 110"
 
@@ -20,7 +20,7 @@ while true; do
     echo "[01] • OPENSSH      ◉"
     echo "[02] • SQUID PROXY  ○"
     echo "[03] • DROPBEAR     ◉"
-    echo "[04] • PROXY SOCKS  ◉"
+    echo "[04] • WEBSOCKET    ◉"
     echo "[05] • SSL TUNNEL   ◉"
     echo "[06] • SLOWDNS      ○"
     echo
@@ -39,5 +39,6 @@ while true; do
         6) bash "$DIR/protocols/slowdns.sh" ;;
         7) bash "$DIR/menu/main.sh"; exit ;;
         0) exit ;;
+        *) echo "Invalid option"; sleep 1 ;;
     esac
 done
