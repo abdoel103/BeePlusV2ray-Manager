@@ -1,5 +1,4 @@
-
-#!/usr/bin/env bash
+#!/bin/bash
 
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
@@ -9,63 +8,101 @@ source "$DIR/modules/banner.sh"
 CONFIG="/etc/beeplusv2ray/websocket.conf"
 
 mkdir -p /etc/beeplusv2ray
-touch "$CONFIG"
+
+# default port
+if [ ! -s "$CONFIG" ]; then
+    echo "80" > "$CONFIG"
+fi
+
 
 while true; do
-    clear
-    banner
 
-    echo "PORTS:"
-    echo
+clear
+banner
 
-    if [ -s "$CONFIG" ]; then
-        cat "$CONFIG"
-    else
-        echo "No ports configured."
-    fi
+echo
+echo -e "${GREEN}WEBSOCKET PORTS${RESET}"
+echo
 
-    echo
-    echo "[1] Add Port"
-    echo "[2] Remove Port"
-    echo "[3] Restart WebSocket"
-    echo "[4] Enable"
-    echo "[5] Disable"
-    echo
-    echo "[0] Back"
-    echo
+nl -s " - " "$CONFIG"
 
-    read -rp "Select: " opt
+echo
+echo "=========================="
+echo "[1] Add Port"
+echo "[2] Remove Port"
+echo "[3] Restart WebSocket"
+echo "[4] Enable Service"
+echo "[5] Disable Service"
+echo "[0] Back"
+echo
 
-    case "$opt" in
+read -p "Select: " opt
 
-        1)
-            read -rp "New Port: " PORT
-            echo "$PORT" >> "$CONFIG"
-            sort -u "$CONFIG" -o "$CONFIG"
-            systemctl restart beeplus-websocket 2>/dev/null
-            ;;
 
-        2)
-            read -rp "Port to remove: " PORT
-            sed -i "/^${PORT}$/d" "$CONFIG"
-            systemctl restart beeplus-websocket 2>/dev/null
-            ;;
+case $opt in
 
-        3)
-            systemctl restart beeplus-websocket
-            ;;
 
-        4)
-            systemctl enable --now beeplus-websocket
-            ;;
+1)
 
-        5)
-            systemctl disable --now beeplus-websocket
-            ;;
+read -p "New Port: " PORT
 
-        0)
-            exit
-            ;;
+if grep -qx "$PORT" "$CONFIG"; then
+    echo "Port already exists."
+else
+    echo "$PORT" >> "$CONFIG"
+    echo "Port added."
+fi
 
-    esac
+systemctl restart beeplus-websocket 2>/dev/null
+
+;;
+
+2)
+
+read -p "Port to remove: " PORT
+
+if [ "$PORT" = "80" ]; then
+    echo "Default port 80 cannot be removed."
+else
+    sed -i "/^$PORT$/d" "$CONFIG"
+    echo "Port removed."
+fi
+
+systemctl restart beeplus-websocket 2>/dev/null
+
+;;
+
+
+3)
+
+systemctl restart beeplus-websocket
+
+echo "Restarted."
+
+;;
+
+
+4)
+
+systemctl enable --now beeplus-websocket
+
+;;
+
+
+5)
+
+systemctl disable --now beeplus-websocket
+
+;;
+
+
+0)
+
+exit
+
+;;
+
+
+esac
+
 done
