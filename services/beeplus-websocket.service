@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /usr/local/beeplusv2ray/websocket/ws.py
+ExecStart=/usr/bin/python3 /usr/local/beeplus/websocket/ws.py
 Restart=always
 RestartSec=3
 User=root
