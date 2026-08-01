@@ -9,7 +9,7 @@ echo "       BeePlusV2ray Manager Installer"
 echo "=========================================="
 
 REPO="abdoel103/BeePlusV2ray-Manager"
-BRANCH="devlop"
+BRANCH="backup-2026-08-01"
 
 INSTALL_DIR="/usr/local/beeplus"
 
@@ -150,7 +150,15 @@ bash menu/main.sh
 EOF
 
 
+cat > /usr/local/bin/menu <<EOF
+#!/bin/bash
+cd $INSTALL_DIR
+bash menu/main.sh
+EOF
+
+
 chmod +x /usr/local/bin/bpm
+chmod +x /usr/local/bin/menu
 
 
 
@@ -161,6 +169,10 @@ echo "=========================================="
 
 echo
 echo "Run:"
+echo
+echo "menu"
+echo
+echo "or"
 echo
 echo "bpm"
 echo
