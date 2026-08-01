@@ -1,53 +1,70 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-source /usr/local/beeplus/modules/colors.sh
-source /usr/local/beeplus/modules/banner.sh
+DIR="/usr/local/beeplus"
+
+source "$DIR/modules/colors.sh"
+source "$DIR/modules/banner.sh"
 
 while true; do
 
-clear
+    clear
 
-banner
+    RAM_TOTAL=$(free -h | awk '/Mem:/ {print $2}')
+    RAM_USED=$(free | awk '/Mem:/ {printf "%.2f%%", $3/$2*100}')
+    CPU=$(top -bn1 | awk '/Cpu\(s\)/ {printf "%.0f%%", $2+$4}')
+    CORES=$(nproc)
+    OS=$(grep PRETTY_NAME /etc/os-release | cut -d'"' -f2 | sed 's/GNU\/Linux//')
+    TIME=$(date +"%H:%M:%S")
 
-echo
-echo " [1] BADVPN"
-echo " [2] ADD / REMOVE USER"
-echo " [3] PROTOCOLS"
-echo " [4] WEBSOCKET MANAGER"
-echo
-echo " [0] EXIT"
-echo
+    ONLINE_USERS=$(ps -ef | grep "sshd: " | grep -v grep | grep -v "\[priv\]" | wc -l)
 
-read -p "Select Option : " option
+    echo -e "${CYAN}"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "               ⇱ BEE PLUS MANAGER ⇲"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-case $option in
+    echo -e "${GREEN}SYSTEM             RAM MEMORY       PROCESSOR${RESET}"
+    echo -e "${GREEN}OS:${RESET} ${YELLOW}${OS}${RESET}    ${GREEN}Total:${RESET} ${YELLOW}${RAM_TOTAL}${RESET}    ${GREEN}Cores:${RESET} ${YELLOW}${CORES}${RESET}"
+    echo -e "${GREEN}Time:${RESET} ${YELLOW}${TIME}${RESET}       ${GREEN}In use:${RESET} ${YELLOW}${RAM_USED}${RESET}   ${GREEN}In use:${RESET} ${YELLOW}${CPU}${RESET}"
 
-1)
-    bash /usr/local/beeplus/modules/badvpn.sh
-    ;;
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-2)
-    bash /usr/local/beeplus/modules/users.sh
-    ;;
+    echo -e "${GREEN}Online:${RESET} ${YELLOW}${ONLINE_USERS}${RESET}        ${GREEN}Expired:${RESET} ${YELLOW}0${RESET}       ${GREEN}Total:${RESET} ${YELLOW}0${RESET}"
 
-3)
-    bash /usr/local/beeplus/protocols/main.sh
-    ;;
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-4)
-    bash /usr/local/beeplus/protocols/websocket.sh
-    ;;
+    echo -e "${GREEN}[01] • ADD/REMOVE USER${RESET}           ${GREEN}[03] • BAD VPN ○${RESET}"
+    echo -e "${GREEN}[02] • PROTOCOLS${RESET}                 ${GREEN}[00] • EXIT <<<${RESET}"
 
-0)
-    exit
-    ;;
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-*)
     echo
-    echo "Invalid Option"
-    sleep 1
-    ;;
 
-esac
+    read -rp "Select Option : " option
+
+    case "$option" in
+
+        01|1)
+            bash "$DIR/modules/users/main.sh"
+            ;;
+
+        02|2)
+            bash "$DIR/protocols/main.sh"
+            ;;
+
+        03|3)
+            bash "$DIR/modules/badvpn.sh"
+            ;;
+
+        00|0)
+            exit 0
+            ;;
+
+        *)
+            echo "Invalid Option"
+            sleep 1
+            ;;
+
+    esac
 
 done
