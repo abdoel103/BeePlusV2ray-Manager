@@ -1,88 +1,64 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-BASE="/usr/local/beeplus"
+DIR="/usr/local/beeplus"
+source "$DIR/modules/colors.sh"
 
-CONFIG="$BASE/config/websocket.json"
-TOOL="$BASE/tools/config.py"
+while true; do
+    clear
 
-while true
-do
+    WS_PORTS=$(python3 "$DIR/tools/config.py" websocket list | paste -sd "," -)
+    [ -z "$WS_PORTS" ] && WS_PORTS="80"
 
-clear
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "             WEBSOCKET"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo
+    echo -e "${GREEN}STATUS:${RESET} ${YELLOW}RUNNING${RESET}"
+    echo -e "${GREEN}PORTS:${RESET} ${YELLOW}${WS_PORTS}${RESET}"
+    echo
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo
+    echo "[01] • ADD PORT"
+    echo "[02] • REMOVE PORT"
+    echo "[03] • RESTART SERVICE"
+    echo "[04] • STATUS"
+    echo
+    echo "[07] • BACK"
+    echo "[00] • EXIT"
+    echo
 
-echo "================================="
-echo "       WEBSOCKET MANAGER"
-echo "================================="
+    read -rp "Select Option : " option
 
-echo
-echo "Active Ports:"
-echo
+    case "$option" in
+        1|01)
+            read -rp "Port: " PORT
+            python3 "$DIR/tools/config.py" websocket add-port "$PORT"
+            systemctl restart beeplus-websocket
+            ;;
 
-python3 "$TOOL" websocket list
+        2|02)
+            read -rp "Port: " PORT
+            python3 "$DIR/tools/config.py" websocket remove-port "$PORT"
+            systemctl restart beeplus-websocket
+            ;;
 
-echo
-echo "-----------------------------"
-echo "[1] Add Port"
-echo "[2] Remove Port"
-echo "[3] Restart Service"
-echo "[0] Back"
-echo
+        3|03)
+            systemctl restart beeplus-websocket
+            echo "Restarted."
+            read -n1 -rsp "Press any key..."
+            ;;
 
-read -p "Select: " option
+        4|04)
+            systemctl --no-pager --full status beeplus-websocket
+            read -n1 -rsp "Press any key..."
+            ;;
 
+        7|07)
+            break
+            ;;
 
-case $option in
-
-1)
-
-read -p "Enter new port: " PORT
-
-python3 "$TOOL" websocket add-port "$PORT"
-
-systemctl restart beeplus-websocket
-
-echo "Port added."
-sleep 2
-
-;;
-
-
-2)
-
-read -p "Enter port to remove: " PORT
-
-python3 "$TOOL" websocket remove-port "$PORT"
-
-systemctl restart beeplus-websocket
-
-sleep 2
-
-;;
-
-
-3)
-
-systemctl restart beeplus-websocket
-
-echo "Restarted."
-sleep 2
-
-;;
-
-
-0)
-
-exit
-
-;;
-
-*)
-
-echo "Invalid option"
-sleep 2
-
-;;
-
-esac
-
+        0|00)
+            exit 0
+            ;;
+    esac
 done
