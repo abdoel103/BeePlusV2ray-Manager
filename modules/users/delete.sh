@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 DIR="/usr/local/beeplus"
-
 source "$DIR/modules/colors.sh"
 
 while true; do
@@ -15,8 +14,8 @@ while true; do
 
     USERS=()
 
-    while IFS=: read -r USER _ UID _ _ HOME SHELL; do
-        if [ "$UID" -ge 1000 ] && \
+    while IFS=: read -r USER _ USER_UID _ _ HOME SHELL; do
+        if [ "$USER_UID" -ge 1000 ] && \
            [ "$USER" != "nobody" ] && \
            [ "$USER" != "beeplus" ]; then
             USERS+=("$USER")

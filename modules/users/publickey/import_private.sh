@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 
 DIR="/usr/local/beeplus"
-
 source "$DIR/modules/colors.sh"
 
 clear
 
 echo
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "       IMPORT PRIVATE KEY"
+echo "         ADD CUSTOM KEY"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo
 
@@ -37,10 +36,12 @@ chage -E "$EXPIRE_DATE" "$USERNAME"
 mkdir -p "/home/$USERNAME/.ssh"
 
 echo
-echo "Paste your PRIVATE KEY."
+echo "Paste your RSA PRIVATE KEY."
 echo "Nano will open."
-echo "Save with CTRL+O then ENTER, exit with CTRL+X."
+echo "Save: CTRL+O, ENTER"
+echo "Exit: CTRL+X"
 echo
+
 read -n1 -r -p "Press any key..."
 
 nano /tmp/private_key
@@ -64,8 +65,13 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "      USER CREATED SUCCESSFULLY"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo
+
 echo "Username : $USERNAME"
 echo "Password : $PASSWORD"
 echo "Expire   : $EXPIRE_DATE"
 echo
+echo "Authentication : Custom RSA Key"
+echo
+
 read -n1 -r -p "Press any key..."
+

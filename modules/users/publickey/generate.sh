@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 DIR="/usr/local/beeplus"
-
 source "$DIR/modules/colors.sh"
 
 clear
@@ -25,7 +24,6 @@ read -rsp "Password      : " PASSWORD
 echo
 
 read -rp "Expire (days) : " DAYS
-
 echo
 
 echo "Creating user..."
@@ -41,7 +39,9 @@ chage -E "$EXPIRE_DATE" "$USERNAME"
 mkdir -p /root/keys
 
 ssh-keygen \
--t ed25519 \
+-t rsa \
+-b 4096 \
+-m PEM \
 -f /root/keys/"$USERNAME" \
 -N "" >/dev/null
 
@@ -54,7 +54,6 @@ chown -R "$USERNAME":"$USERNAME" \
 /home/"$USERNAME"/.ssh
 
 chmod 700 /home/"$USERNAME"/.ssh
-
 chmod 600 /home/"$USERNAME"/.ssh/authorized_keys
 
 clear
@@ -64,15 +63,19 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "       USER CREATED SUCCESSFULLY"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo
+
 echo "Username : $USERNAME"
 echo "Password : $PASSWORD"
 echo "Expire   : $EXPIRE_DATE"
 echo
+
 echo "Private Key:"
 echo "/root/keys/$USERNAME"
 echo
+
 echo "Public Key:"
 echo "/root/keys/$USERNAME.pub"
 echo
 
 read -n1 -r -p "Press any key..."
+
