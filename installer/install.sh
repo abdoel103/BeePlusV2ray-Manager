@@ -1,154 +1,109 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 set -e
 
+clear
+
+REPO="abdoel103/BeePlusV2ray-Manager"
+BRANCH="devlop"
 INSTALL_DIR="/usr/local/beeplus"
 
-echo
 echo "=========================================="
-echo "      BeePlus Installation Setup"
+echo "       BeePlusV2ray Manager Installer"
 echo "=========================================="
 
 echo
-echo "[1/7] Installing required packages..."
+echo "[1/8] Updating packages..."
 
 apt update
+
+echo
+echo "[2/8] Installing requirements..."
 
 apt install -y \
 python3 \
 python3-pip \
+git \
+curl \
+wget \
 openssh-server \
 dropbear \
-stunnel4 \
-openssl
+stunnel4
 
 echo
-echo "[2/7] Creating directories..."
+echo "[3/8] Preparing directories..."
 
+mkdir -p "$INSTALL_DIR"
 mkdir -p "$INSTALL_DIR/config"
-mkdir -p "$INSTALL_DIR/tools"
 mkdir -p "$INSTALL_DIR/websocket"
+mkdir -p "$INSTALL_DIR/tools"
 
 echo
-echo "[3/7] Setting permissions..."
+echo "[4/8] Downloading BeePlusV2ray Manager..."
 
-chmod +x "$INSTALL_DIR"/tools/*.py 2>/dev/null || true
-chmod +x "$INSTALL_DIR"/websocket/*.py 2>/dev/null || true
-chmod +x "$INSTALL_DIR"/menu/*.sh
-chmod +x "$INSTALL_DIR"/modules/*.sh
-chmod +x "$INSTALL_DIR"/protocols/*.sh
+TMP_DIR="/tmp/BeePlusV2ray-Manager"
+
+rm -rf "$TMP_DIR"
+
+git clone \
+-b "$BRANCH" \
+"https://github.com/$REPO.git" \
+"$TMP_DIR"
 
 echo
-echo "[4/7] Creating default configuration..."
+echo "[5/8] Installing files..."
+
+cp -rf "$TMP_DIR/websocket" "$INSTALL_DIR/"
+cp -rf "$TMP_DIR/config" "$INSTALL_DIR/"
+cp -rf "$TMP_DIR/tools" "$INSTALL_DIR/"
+cp -rf "$TMP_DIR/protocols" "$INSTALL_DIR/"
+cp -rf "$TMP_DIR/menu" "$INSTALL_DIR/"
+cp -rf "$TMP_DIR/modules" "$INSTALL_DIR/"
+cp -rf "$TMP_DIR/services" "$INSTALL_DIR/"
+cp -rf "$TMP_DIR/installer" "$INSTALL_DIR/"
+
+cp "$TMP_DIR/services/beeplus-websocket.service" /etc/systemd/system/
+
+if [ -f "$TMP_DIR/services/beeplus-dropbear.service" ]; then
+    cp "$TMP_DIR/services/beeplus-dropbear.service" /etc/systemd/system/
+fi
+
+echo
+echo "[6/8] Creating default config..."
 
 if [ ! -f "$INSTALL_DIR/config/websocket.json" ]; then
-cat > "$INSTALL_DIR/config/websocket.json" <<CFG
+cat > "$INSTALL_DIR/config/websocket.json" <<EOL
 {
     "enabled": true,
     "target_host": "127.0.0.1",
     "target_port": 22,
     "ports": [80]
 }
-CFG
-fi
-
-if [ ! -f "$INSTALL_DIR/config/openssh.json" ]; then
-cat > "$INSTALL_DIR/config/openssh.json" <<CFG
-{
-    "ports": [22]
-}
-CFG
-fi
-
-if [ ! -f "$INSTALL_DIR/config/dropbear.json" ]; then
-cat > "$INSTALL_DIR/config/dropbear.json" <<CFG
-{
-    "ports": [110]
-}
-CFG
-fi
-
-if [ ! -f "$INSTALL_DIR/config/ssl.json" ]; then
-cat > "$INSTALL_DIR/config/ssl.json" <<CFG
-{
-    "ports": [443],
-    "target_host": "127.0.0.1",
-    "target_port": 22
-}
-CFG
+EOL
 fi
 
 echo
-echo "[5/7] Creating SSL certificate..."
+echo "[7/8] Setting permissions..."
 
-mkdir -p /etc/stunnel
-
-if [ ! -f /etc/stunnel/stunnel.pem ]; then
-
-openssl req \
--new \
--newkey rsa:2048 \
--days 3650 \
--nodes \
--x509 \
--subj "/C=US/ST=BeePlus/L=BeePlus/O=BeePlus/CN=localhost" \
--keyout /etc/stunnel/stunnel.key \
--out /etc/stunnel/stunnel.crt
-
-cat \
-/etc/stunnel/stunnel.key \
-/etc/stunnel/stunnel.crt \
-> /etc/stunnel/stunnel.pem
-
-chmod 600 /etc/stunnel/stunnel.pem
-
-fi
-
-echo
-echo "[6/7] Installing services..."
-
-python3 "$INSTALL_DIR/tools/generate_sshd.py"
-python3 "$INSTALL_DIR/tools/generate_dropbear.py"
-python3 "$INSTALL_DIR/tools/generate_stunnel.py"
-
-cp -f "$INSTALL_DIR/services/beeplus-websocket.service" \
-/etc/systemd/system/
-
-cp -f "$INSTALL_DIR/services/beeplus-dropbear.service" \
-/etc/systemd/system/
+chmod -R +x "$INSTALL_DIR"
 
 systemctl daemon-reload
-
-systemctl enable ssh
-systemctl restart ssh
 
 systemctl enable beeplus-websocket
 systemctl restart beeplus-websocket
 
-systemctl enable beeplus-dropbear
-systemctl restart beeplus-dropbear
-
-systemctl enable stunnel4
-systemctl restart stunnel4
+if [ -f /etc/systemd/system/beeplus-dropbear.service ]; then
+    systemctl enable beeplus-dropbear
+    systemctl restart beeplus-dropbear || true
+fi
 
 echo
-echo "[7/7] Creating command..."
+echo "[8/8] Creating command..."
 
-cat > /usr/local/bin/bpm <<EOL
+cat > /usr/local/bin/menu <<EOL
 #!/bin/bash
 cd $INSTALL_DIR
 exec bash menu/main.sh
 EOL
 
-chmod +x /usr/local/bin/bpm
-
-echo
-echo "=========================================="
-echo " Installation Completed Successfully "
-echo "=========================================="
-
-echo
-echo "Run:"
-echo
-echo "bpm"
-echo
+chmod +x /usr/local/bin/menu
