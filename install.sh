@@ -6,6 +6,8 @@ REPO="abdoel103/BeePlusV2ray-Manager"
 BRANCH="devlop"
 INSTALL_DIR="/usr/local/beeplus"
 
+clear
+
 echo "=========================================="
 echo "       BeePlusV2ray Manager Installer"
 echo "=========================================="
@@ -33,36 +35,45 @@ case "$ID" in
         ;;
 esac
 
-
 echo
 echo "[INFO] Installing dependencies..."
 
 apt update
 
-apt install -y git curl wget unzip
-
+apt install -y \
+git \
+curl \
+wget \
+unzip \
+python3 \
+python3-pip
 
 echo
 echo "[INFO] Downloading BeePlusV2ray Manager..."
 
 rm -rf "$INSTALL_DIR"
 
-git clone -b "$BRANCH" https://github.com/$REPO.git "$INSTALL_DIR"
-
+git clone \
+-b "$BRANCH" \
+"https://github.com/$REPO.git" \
+"$INSTALL_DIR"
 
 echo
 echo "[INFO] Setting permissions..."
 
 chmod -R +x "$INSTALL_DIR"
 
-
 echo
 echo "[INFO] Starting installation..."
 
 cd "$INSTALL_DIR"
 
-bash installer/install.sh
+if [ ! -f installer/install.sh ]; then
+    echo "[ERROR] installer/install.sh not found."
+    exit 1
+fi
 
+bash installer/install.sh
 
 echo
 echo "=========================================="

@@ -1,11 +1,11 @@
 [Unit]
-Description=BeePlus WebSocket Service
+Description=BeePlus Dropbear Manager
 After=network.target
 
 [Service]
 Type=simple
 WorkingDirectory=/usr/local/beeplus
-ExecStart=/usr/bin/python3 /usr/local/beeplus/websocket/ws.py
+ExecStart=/usr/bin/python3 /usr/local/beeplus/tools/dropbear_manager.py
 Restart=always
 RestartSec=3
 User=root
